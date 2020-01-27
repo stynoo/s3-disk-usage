@@ -63,7 +63,7 @@ location is `output.json`.
 
 The syntax for the second script is:
 
-`./2-process-bucket-contents.py [--humanize] [file]`
+`./b_process_bucket_contents.py [--humanize] [file]`
 
 If no file is specified, `output.json` will be read from.  Normally, the output
 is in JSON format, but if you specify `--humanize` (as the `go.sh` script does), you
