@@ -63,7 +63,7 @@ then
 	echo "# " 1>&2
 
 else 
-	./1-get-bucket-contents.py $BUCKET $OUTPUT
+	./a_get_bucket_contents.py $BUCKET $OUTPUT
 
 fi
 

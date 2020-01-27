@@ -56,7 +56,7 @@ This will run statistics for each bucket and write the results to the file `outp
 There are two core Python scripts: one to download the bucket contents, and one to
 go through the resulting JSON and print up stats.  The syntax for each of these is:
 
-`./1-get-bucket-contents.py bucket [file]`
+`./a_get_bucket_contents.py bucket [file]`
 
 The optional file is the name of the file to write the JSON data to.  The default
 location is `output.json`.
