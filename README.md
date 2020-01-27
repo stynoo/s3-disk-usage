@@ -29,7 +29,7 @@ that `aws s3 ls` works.
 ### Quick and Dirty Version
 
 - Clone this repo
-- Run `pip3 install -r ./requirements.txt` to install the required Python modules
+- Run `python3 -m pip install -r ./requirements.txt` to install the required Python modules
 - Run `./go.sh bucketname`
 
 
