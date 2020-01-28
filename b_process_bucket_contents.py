@@ -9,6 +9,16 @@ import logging
 import os
 import humanize
 
+STORAGE_CLASSES = [
+    "STANDARD",
+    "REDUCED_REDUNDANCY",
+    "STANDARD_IA",
+    "ONEZONE_IA",
+    "INTELLIGENT_TIERING",
+    "GLACIER",
+    "DEEP_ARCHIVE",
+]
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s: %(levelname)s: %(message)s"
 )
@@ -80,6 +90,7 @@ def process_versions(data):
             ret["latest_modified"] = date
             ret["total_size"] = size
             ret["num_versions"] = 1
+            ret["storage_class"] = row["StorageClass"]
             retval[key] = ret
 
         else:
@@ -141,7 +152,7 @@ def combine_deleted_and_versions(delete_markers, versions):
         if not key in retval:
             #
             # If the key wasn't in delete_markers, then
-            # the object must be prejsent.
+            # the object must be present.
             #
             retval[key] = row
             retval[key]["status"] = "present"
@@ -202,6 +213,11 @@ def get_file_stats(data):
     retval["deleted"]["total_size"] = 0
     retval["deleted"]["average_size"] = 0
 
+    for fill_key in STORAGE_CLASSES:
+        for fill_key2 in ["num_files", "total_size"]:
+            retval["present"][fill_key + "_" + fill_key2] = 0
+            retval["deleted"][fill_key + "_" + fill_key2] = 0
+
     for key, row in data.items():
         #
         # Folders are essentially metadata and don't take up
@@ -210,19 +226,28 @@ def get_file_stats(data):
         if row["is_folder"]:
             continue
 
+        try:
+            storage_class = row["storage_class"]
+            if storage_class not in STORAGE_CLASSES:
+                raise Exception("Unknown storage class: %s" % row["storage_class"])
+        except:
+            raise Exception("No storage class for %s" % key)
+
         if row["status"] == "present":
             # print("PRESENT", key) # Debugging
             retval["present"]["num_files"] += 1
+            retval["present"][storage_class + "_num_files"] += 1
             retval["present"]["num_versions"] += row["num_versions"]
             retval["present"]["total_size"] += row["total_size"]
+            retval["present"][storage_class + "_total_size"] += row["total_size"]
             retval["present"]["latest_size"] += row.get("latest_size")
-
         elif row["status"] == "deleted":
             # print("ABSENT", key) # Debugging
             retval["deleted"]["num_files"] += 1
+            retval["deleted"][storage_class + "_num_files"] += 1
             retval["deleted"]["num_versions"] += row["num_versions"]
             retval["deleted"]["total_size"] += row["total_size"]
-
+            retval["deleted"][storage_class + "_total_size"] += row["total_size"]
         else:
             raise Exception("Unknown status: %s" % row["status"])
 
