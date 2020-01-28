@@ -267,12 +267,14 @@ def print_file_stats(stats):
                 row_new[key2] = row2
                 row2 = humanize.naturalsize(row2, binary=True, gnu=True)
                 row_new[key2 + "_human"] = row2
-
             elif "num_" in key2:
                 row_new[key2] = row2
                 row2 = humanize.intcomma(row2)
                 row_new[key2 + "_human"] = row2
-
+            elif "pct_" in key2:
+                row_new[key2] = row2
+                row2 = row2 + "%"
+                row_new[key2 + "_human"] = row2
             else:
                 row_new[key2] = row2
 
@@ -291,8 +293,6 @@ def print_file_stats(stats):
         #
         # If we're humanizing, do that on our bytecounts and totals
         #
-        present["pct_used_by_latest"] += "%"
-
         fields = (
             "num_files",
             "num_versions",
@@ -305,13 +305,15 @@ def print_file_stats(stats):
         print()
 
         for key in fields:
-            print(output_format % ("Present", key, stats["present"][key]))
+            human_key = key + "_human"
+            print(output_format % ("Present", key, stats["present"][human_key]))
 
         print()
 
         for key in fields:
             if key in stats["deleted"]:
-                print(output_format % ("Deleted", key, stats["deleted"][key]))
+                human_key = key + "_human"
+                print(output_format % ("Deleted", key, stats["deleted"][human_key]))
 
         print()
 
