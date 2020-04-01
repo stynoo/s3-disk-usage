@@ -207,6 +207,7 @@ def get_file_stats(data):
     retval["present"]["total_size"] = 0
     retval["present"]["average_size"] = 0
     retval["present"]["latest_size"] = 0
+    retval["present"]["emtpy_delete_markers"] = 0
     retval["deleted"] = {}
     retval["deleted"]["num_files"] = 0
     retval["deleted"]["num_versions"] = 0
@@ -225,31 +226,35 @@ def get_file_stats(data):
         #
         if row["is_folder"]:
             continue
+        is_emtpy_delete_markers = False
 
         try:
             storage_class = row["storage_class"]
             if storage_class not in STORAGE_CLASSES:
                 raise Exception("Unknown storage class: %s" % row["storage_class"])
         except:
-            raise Exception("No storage class for %s" % key)
+            is_emtpy_delete_markers = True
 
-        if row["status"] == "present":
-            # print("PRESENT", key) # Debugging
-            retval["present"]["num_files"] += 1
-            retval["present"][storage_class + "_num_files"] += 1
-            retval["present"]["num_versions"] += row["num_versions"]
-            retval["present"]["total_size"] += row["total_size"]
-            retval["present"][storage_class + "_total_size"] += row["total_size"]
-            retval["present"]["latest_size"] += row.get("latest_size")
-        elif row["status"] == "deleted":
-            # print("ABSENT", key) # Debugging
-            retval["deleted"]["num_files"] += 1
-            retval["deleted"][storage_class + "_num_files"] += 1
-            retval["deleted"]["num_versions"] += row["num_versions"]
-            retval["deleted"]["total_size"] += row["total_size"]
-            retval["deleted"][storage_class + "_total_size"] += row["total_size"]
+        if not is_emtpy_delete_markers:
+            if row["status"] == "present":
+                # print("PRESENT", key) # Debugging
+                retval["present"]["num_files"] += 1
+                retval["present"][storage_class + "_num_files"] += 1
+                retval["present"]["num_versions"] += row["num_versions"]
+                retval["present"]["total_size"] += row["total_size"]
+                retval["present"][storage_class + "_total_size"] += row["total_size"]
+                retval["present"]["latest_size"] += row.get("latest_size")
+            elif row["status"] == "deleted":
+                # print("ABSENT", key) # Debugging
+                retval["deleted"]["num_files"] += 1
+                retval["deleted"][storage_class + "_num_files"] += 1
+                retval["deleted"]["num_versions"] += row["num_versions"]
+                retval["deleted"]["total_size"] += row["total_size"]
+                retval["deleted"][storage_class + "_total_size"] += row["total_size"]
+            else:
+                raise Exception("Unknown status: %s" % row["status"])
         else:
-            raise Exception("Unknown status: %s" % row["status"])
+            retval["present"]["emtpy_delete_markers"] += 1
 
     retval["present"]["average_size"] = 0
     if retval["present"]["num_versions"]:
